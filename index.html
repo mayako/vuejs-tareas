@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <title>Todo</title>
+  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+  <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+</head>
+<style>
+  .done {
+    text-decoration: line-through;
+  }
+  [v-cloak] {
+    display: none !important;
+  }
+  .list__tile__title {
+    white-space: pre-wrap;
+  }
+</style>
+<body>
+  <div id="app" v-cloak>
+    <v-app>
+      <v-navigation-drawer
+        persistent
+        absolute
+        clipped
+        app
+        v-model="drawer">
+        <h2>Menu</h2>
+      </v-navigation-drawer>
+      <v-toolbar
+        color="blue darken-3"
+        dark
+        clipped-left
+        app
+        fixed>
+        <v-toolbar-title style="width: 300px" class="ml-0 pl-3">
+          <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+          {{ nameApp }}
+        </v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon>
+          <v-icon>apps</v-icon>
+        </v-btn>
+      </v-toolbar>
+      <main>
+        <v-content>
+          <v-container fluid fill-height>
+            <v-layout column>
+              <v-list>
+                <v-list-tile avatar v-for="(tarea, index) in tareas_ordenadas" :key="index">
+
+
+                    <v-list-tile-action>
+                      <v-checkbox v-model="tarea.hecho" v-on:change="actualizaTarea(tarea)"></v-checkbox>
+                    </v-list-tile-action>
+
+
+
+                    <v-list-tile-content>
+                      <v-list-tile-title>
+                        <p :class="{done: tarea.hecho}" v-html="tarea.titulo"></p>
+                      </v-list-tile-title>
+                    </v-list-tile-content>
+
+
+
+                    <v-list-tile-action>
+                      <v-btn
+                        class="red darken-3"
+                        icon
+                        dark
+                        v-on:click="eliminarTarea(tarea)">
+                        <v-icon>delete</v-icon>
+                      </v-btn>
+                    </v-list-tile-action>
+
+                </v-list-tile>
+              </v-list>
+            </v-layout>
+            <v-btn
+              fixed
+              dark
+              fab
+              bottom
+              right
+              color="pink"
+              @click="dialog = !dialog"
+            >
+              <v-icon>add</v-icon>
+            </v-btn>
+            <v-dialog app v-model="dialog">
+              <v-card>
+              <v-card-title>
+                Nueva tarea
+              </v-card-title>
+              <v-card-text>
+                  <v-text-field
+                    label="Titulo"
+                    v-model="nueva_tarea.titulo"
+                    required
+                  ></v-text-field>
+                  <input type="hidden" v-model="nueva_tarea.order = order">
+              </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn class="green darken-3" dark @click.stop="agregarTarea">Ok</v-btn>
+                  <v-btn flat @click.stop="dialog=false">Cancelar</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
+          </v-container>
+        </v-content>
+      </main>
+    </v-app>
+  </div>
+
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+
+  <script src="https://gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+  <script src="https://unpkg.com/vuefire/dist/vuefire.js"></script>
+
+  <script src="http://underscorejs.org/underscore-min.js"></script>
+
+  <script>
+    let config = {
+      apiKey: "AIzaSyAxge9RDWaO9THjwXNHbfQczO1Jkp1xFcU",
+      authDomain: "tareas-todo.firebaseapp.com",
+      databaseURL: "https://tareas-todo.firebaseio.com",
+      projectId: "tareas-todo",
+      storageBucket: "tareas-todo.appspot.com",
+      messagingSenderId: "199523897655"
+    }
+    const app = firebase.initializeApp(config)
+    let db = app.database()
+
+    let tasksRef = db.ref('tareas')
+
+    new Vue({
+      el: '#app',
+      firebase: {
+        tasks: tasksRef
+      },
+      computed: {
+        tareas_ordenadas: function() {
+          return _.sortBy(this.tasks, 'creado').reverse()
+        },
+        order: function() {
+          return this.tasks.length
+        }
+      },
+      data: {
+        drawer: false,
+        dialog: false,
+
+        nameApp: 'Tareas Vue.js',
+        tasks: [],
+        nueva_tarea: {
+          hecho: false
+        }
+      },
+      methods: {
+        agregarTarea: function(e) {
+          this.nueva_tarea.creado = Date.now();
+
+          tasksRef.push(this.nueva_tarea)
+          this.nueva_tarea.titulo = ''
+          this.dialog = false
+        },
+        eliminarTarea: function(tarea) {
+          tasksRef.child(tarea['.key']).remove()
+        },
+        actualizaTarea: function(tarea) {
+          tasksRef.child(tarea['.key']).child('hecho').set(tarea.hecho)
+        }
+      }
+    })
+  </script>
+</body>
+</html>

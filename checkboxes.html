@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VueJS</title>
+</head>
+<body>
+  <div id="app">
+    <input type="checkbox" value="Yakin" v-model="nombres"> Yakin
+    <br>
+    <input type="checkbox" value="Anuar" v-model="nombres"> Anuar
+    <br>
+    <code>{{ nombres }}</code>
+  </div>
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script>
+      new Vue({
+        el: '#app',
+        data: {
+          nombres: []
+        }
+      })
+  </script>
+</body>
+</html>
